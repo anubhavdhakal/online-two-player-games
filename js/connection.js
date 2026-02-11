@@ -1,5 +1,5 @@
 /**
- * GameConnection — Reusable PeerJS connection manager for P2P games.
+ * GameConnection — Firebase Realtime Database connection manager for online games.
  *
  * Usage:
  *   const gc = new GameConnection();
@@ -20,41 +20,17 @@
 
 class GameConnection {
   constructor() {
-    this.peer = null;
-    this.conn = null;
+    this.db = firebase.database();
     this.isHost = false;
     this.roomCode = null;
+    this._roomRef = null;
+    this._listeners = [];
 
     // Callbacks — assign these before calling createGame / joinGame
     this.onConnected = null;
     this.onData = null;
     this.onDisconnected = null;
     this.onError = null;
-
-    // ICE servers for NAT traversal (STUN for discovery, TURN for relay fallback)
-    this._iceConfig = {
-      config: {
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' },
-          {
-            urls: 'turn:openrelay.metered.ca:80',
-            username: 'openrelayproject',
-            credential: 'openrelayproject'
-          },
-          {
-            urls: 'turn:openrelay.metered.ca:443',
-            username: 'openrelayproject',
-            credential: 'openrelayproject'
-          },
-          {
-            urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-            username: 'openrelayproject',
-            credential: 'openrelayproject'
-          }
-        ]
-      }
-    };
   }
 
   /**
@@ -70,126 +46,135 @@ class GameConnection {
   }
 
   /**
-   * Host a new game. Resolves with the room code once the PeerJS peer is ready.
+   * Register a Firebase listener so we can clean them all up on destroy().
+   */
+  _addListener(ref, eventType, callback) {
+    ref.on(eventType, callback);
+    this._listeners.push({ ref, eventType, callback });
+  }
+
+  /**
+   * Host a new game. Resolves with the room code once the room is created.
    */
   createGame() {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       this.isHost = true;
       this.roomCode = this._generateCode();
-      const peerId = 'otpg_' + this.roomCode;
 
-      this.peer = new Peer(peerId, this._iceConfig);
-
-      this.peer.on('open', () => {
-        resolve(this.roomCode);
-      });
-
-      this.peer.on('connection', (conn) => {
-        this.conn = conn;
-        this._waitForOpen(conn);
-      });
-
-      this.peer.on('error', (err) => {
-        if (err.type === 'unavailable-id') {
-          // Code collision — try again with a new code
-          this.peer.destroy();
+      try {
+        // Check if room already exists (code collision)
+        const roomRef = this.db.ref('rooms/' + this.roomCode);
+        const snapshot = await roomRef.once('value');
+        if (snapshot.exists()) {
+          // Collision — generate a new code
           this.roomCode = this._generateCode();
-          const retryId = 'otpg_' + this.roomCode;
-          this.peer = new Peer(retryId, this._iceConfig);
-          this.peer.on('open', () => resolve(this.roomCode));
-          this.peer.on('connection', (conn) => {
-            this.conn = conn;
-            this._waitForOpen(conn);
-          });
-          this.peer.on('error', (e) => {
-            this._handleError(e);
-            reject(e);
-          });
-        } else {
-          this._handleError(err);
-          reject(err);
         }
-      });
-    });
-  }
 
-  /**
-   * Join an existing game by room code. Resolves once the connection is open.
-   */
-  joinGame(code) {
-    return new Promise((resolve, reject) => {
-      this.isHost = false;
-      this.roomCode = code.toUpperCase().trim();
-      const peerId = 'otpg_guest_' + this._generateCode();
-      const hostId = 'otpg_' + this.roomCode;
+        this._roomRef = this.db.ref('rooms/' + this.roomCode);
 
-      this.peer = new Peer(peerId, this._iceConfig);
-
-      this.peer.on('open', () => {
-        this.conn = this.peer.connect(hostId, { reliable: true });
-
-        this._waitForOpen(this.conn).then(resolve).catch(reject);
-
-        this.conn.on('error', (err) => {
-          this._handleError(err);
-          reject(err);
+        // Create the room
+        await this._roomRef.set({
+          host: true,
+          guest: false
         });
-      });
 
-      this.peer.on('error', (err) => {
+        // Set up auto-cleanup when host disconnects
+        this._roomRef.child('host').onDisconnect().set(false);
+
+        // Listen for guest to join
+        const guestRef = this._roomRef.child('guest');
+        this._addListener(guestRef, 'value', (snap) => {
+          if (snap.val() === true) {
+            this._setupMessageListener();
+            this._setupDisconnectListener('guest');
+            if (this.onConnected) this.onConnected();
+          }
+        });
+
+        resolve(this.roomCode);
+      } catch (err) {
         this._handleError(err);
         reject(err);
-      });
-    });
-  }
-
-  /**
-   * Wait for a DataConnection to be open, then set up handlers.
-   * Handles the case where the connection is already open.
-   */
-  _waitForOpen(conn) {
-    return new Promise((resolve, reject) => {
-      if (conn.open) {
-        this._setupConnection();
-        resolve();
-        return;
       }
-
-      const timeout = setTimeout(() => {
-        reject(new Error('Connection timed out'));
-        this._handleError({ type: 'timeout', message: 'Connection timed out' });
-      }, 15000);
-
-      conn.on('open', () => {
-        clearTimeout(timeout);
-        this._setupConnection();
-        resolve();
-      });
     });
   }
 
   /**
-   * Set up data and close handlers on the active connection.
+   * Join an existing game by room code. Resolves once connected.
    */
-  _setupConnection() {
-    if (this.onConnected) this.onConnected();
+  joinGame(code) {
+    return new Promise(async (resolve, reject) => {
+      this.isHost = false;
+      this.roomCode = code.toUpperCase().trim();
+      this._roomRef = this.db.ref('rooms/' + this.roomCode);
 
-    this.conn.on('data', (data) => {
-      if (this.onData) this.onData(data);
-    });
+      try {
+        // Verify room exists and host is present
+        const snapshot = await this._roomRef.once('value');
+        if (!snapshot.exists() || !snapshot.val().host) {
+          const err = new Error('Room not found. Check the code and try again.');
+          this._handleError(err);
+          reject(err);
+          return;
+        }
 
-    this.conn.on('close', () => {
-      if (this.onDisconnected) this.onDisconnected();
+        // Mark guest as joined
+        await this._roomRef.child('guest').set(true);
+
+        // Set up auto-cleanup when guest disconnects
+        this._roomRef.child('guest').onDisconnect().set(false);
+
+        // Set up message and disconnect listeners
+        this._setupMessageListener();
+        this._setupDisconnectListener('host');
+
+        if (this.onConnected) this.onConnected();
+        resolve();
+      } catch (err) {
+        this._handleError(err);
+        reject(err);
+      }
     });
   }
 
   /**
-   * Send a JSON-serialisable object to the peer.
+   * Listen for new messages, filtering out our own.
+   */
+  _setupMessageListener() {
+    const messagesRef = this._roomRef.child('messages');
+    const myRole = this.isHost ? 'host' : 'guest';
+
+    this._addListener(messagesRef, 'child_added', (snap) => {
+      const msg = snap.val();
+      if (msg && msg.from !== myRole) {
+        if (this.onData) this.onData(msg.data);
+      }
+    });
+  }
+
+  /**
+   * Watch the other player's presence flag and fire onDisconnected if they leave.
+   */
+  _setupDisconnectListener(otherRole) {
+    const otherRef = this._roomRef.child(otherRole);
+    this._addListener(otherRef, 'value', (snap) => {
+      // Only fire disconnect if the value changes to false after initial setup
+      if (snap.val() === false) {
+        if (this.onDisconnected) this.onDisconnected();
+      }
+    });
+  }
+
+  /**
+   * Send a JSON-serialisable object to the other player.
    */
   send(data) {
-    if (this.conn && this.conn.open) {
-      this.conn.send(data);
-    }
+    if (!this._roomRef) return;
+    const myRole = this.isHost ? 'host' : 'guest';
+    this._roomRef.child('messages').push({
+      from: myRole,
+      data: data
+    });
   }
 
   /**
@@ -201,12 +186,21 @@ class GameConnection {
   }
 
   /**
-   * Cleanly tear down the connection and peer.
+   * Cleanly tear down listeners and remove room data.
    */
   destroy() {
-    if (this.conn) this.conn.close();
-    if (this.peer) this.peer.destroy();
-    this.conn = null;
-    this.peer = null;
+    // Remove all listeners
+    for (const { ref, eventType, callback } of this._listeners) {
+      ref.off(eventType, callback);
+    }
+    this._listeners = [];
+
+    // Cancel onDisconnect handlers and remove room
+    if (this._roomRef) {
+      this._roomRef.child('host').onDisconnect().cancel();
+      this._roomRef.child('guest').onDisconnect().cancel();
+      this._roomRef.remove();
+      this._roomRef = null;
+    }
   }
 }
