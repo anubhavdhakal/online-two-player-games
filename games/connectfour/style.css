@@ -1,0 +1,210 @@
+/* ===== Connect Four Specific Styles ===== */
+
+.c4-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.c4-page .back-link {
+  flex-shrink: 0;
+}
+
+/* ===== Board Container ===== */
+
+.board-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+}
+
+/* ===== Preview Row (hover disc above board) ===== */
+
+.preview-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  width: 364px;
+  height: 44px;
+  margin-bottom: 4px;
+}
+
+.preview-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-cell .preview-disc {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.preview-disc.R {
+  background: radial-gradient(circle at 35% 35%, #ff6666, #ff3333, #cc0000);
+  box-shadow: 0 0 12px rgba(255, 51, 51, 0.5);
+}
+
+.preview-disc.Y {
+  background: radial-gradient(circle at 35% 35%, #fff066, #ffe600, #ccb800);
+  box-shadow: 0 0 12px rgba(255, 230, 0, 0.5);
+}
+
+/* ===== Board (blue frame) ===== */
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: 4px;
+  width: 364px;
+  height: 312px;
+  background: linear-gradient(180deg, #1a3a6b, #0d2240);
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow:
+    0 0 30px rgba(26, 58, 107, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+/* ===== Cells (circular holes) ===== */
+
+.cell {
+  background: var(--bg-primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s ease;
+}
+
+.cell:hover {
+  background: #151520;
+}
+
+.cell.col-highlight {
+  background: #151520;
+}
+
+/* ===== Discs ===== */
+
+.cell .disc {
+  width: 85%;
+  height: 85%;
+  border-radius: 50%;
+  position: absolute;
+}
+
+.disc.R {
+  background: radial-gradient(circle at 35% 35%, #ff6666, #ff3333, #cc0000);
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 51, 51, 0.4);
+}
+
+.disc.Y {
+  background: radial-gradient(circle at 35% 35%, #fff066, #ffe600, #ccb800);
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.2), 0 0 10px rgba(255, 230, 0, 0.4);
+}
+
+/* ===== Drop Animation ===== */
+
+.disc.dropping {
+  animation: dropDisc 0.4s cubic-bezier(0.25, 0.1, 0.25, 1.3) forwards;
+}
+
+@keyframes dropDisc {
+  0% {
+    transform: translateY(calc(var(--drop-rows) * -56px));
+    opacity: 0.8;
+  }
+  60% {
+    transform: translateY(0);
+  }
+  75% {
+    transform: translateY(-8px);
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ===== Win Highlight ===== */
+
+.cell.win .disc {
+  animation: winPulse 0.8s ease-in-out infinite alternate;
+}
+
+.cell.win .disc.R {
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 51, 51, 0.8);
+}
+
+.cell.win .disc.Y {
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.2), 0 0 20px rgba(255, 230, 0, 0.8);
+}
+
+@keyframes winPulse {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.08);
+  }
+}
+
+/* ===== Turn Indicator ===== */
+
+.turn-indicator {
+  font-weight: 600;
+}
+
+.turn-indicator.my-turn {
+  color: var(--neon-green);
+}
+
+/* ===== Result Overlay ===== */
+
+#result-title {
+  font-size: 2rem;
+}
+
+/* ===== Responsive ===== */
+
+@media (max-width: 420px) {
+  .preview-row {
+    width: 308px;
+    height: 38px;
+  }
+
+  .preview-cell .preview-disc {
+    width: 30px;
+    height: 30px;
+  }
+
+  .board {
+    width: 308px;
+    height: 264px;
+  }
+
+  @keyframes dropDisc {
+    0% {
+      transform: translateY(calc(var(--drop-rows) * -48px));
+      opacity: 0.8;
+    }
+    60% {
+      transform: translateY(0);
+    }
+    75% {
+      transform: translateY(-6px);
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}

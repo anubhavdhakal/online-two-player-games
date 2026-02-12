@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connect Four — Online 2-Player</title>
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="c4-page">
+
+  <a href="../../index.html" class="back-link">&larr; Back to Games</a>
+
+  <!-- ===== Lobby ===== -->
+  <div id="lobby" class="lobby">
+    <h2>Connect Four</h2>
+
+    <div class="lobby-actions">
+      <button id="create-btn" class="btn btn-primary">Create Game</button>
+
+      <div class="lobby-divider"><span>or</span></div>
+
+      <div class="join-row">
+        <input
+          id="code-input"
+          class="input"
+          type="text"
+          placeholder="Room code"
+          maxlength="6"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button id="join-btn" class="btn btn-secondary">Join</button>
+      </div>
+    </div>
+
+    <!-- Room code display (shown after creating) -->
+    <div id="room-display" class="room-code-display hidden">
+      <div class="code" id="room-code"></div>
+      <p>Share the link or code with your opponent</p>
+      <div class="share-buttons">
+        <button id="copy-link-btn" class="btn btn-small btn-primary copy-btn">Copy Link</button>
+        <button id="copy-btn" class="btn btn-small btn-secondary copy-btn">Copy Code</button>
+      </div>
+    </div>
+
+    <p id="waiting-text" class="waiting-text hidden">Waiting for opponent to join&hellip;</p>
+    <div id="conn-status" class="connection-status"></div>
+  </div>
+
+  <!-- ===== Game Area ===== -->
+  <div id="game-area" class="hidden">
+    <div class="status-bar">
+      <span id="turn-text" class="turn-indicator">Your turn</span>
+      <span id="score-text" class="scores"></span>
+    </div>
+
+    <div class="board-container">
+      <!-- Hover preview row -->
+      <div id="preview-row" class="preview-row">
+        <div class="preview-cell" data-col="0"></div>
+        <div class="preview-cell" data-col="1"></div>
+        <div class="preview-cell" data-col="2"></div>
+        <div class="preview-cell" data-col="3"></div>
+        <div class="preview-cell" data-col="4"></div>
+        <div class="preview-cell" data-col="5"></div>
+        <div class="preview-cell" data-col="6"></div>
+      </div>
+
+      <div id="board" class="board">
+        <!-- Row 0 (top) -->
+        <div class="cell" data-row="0" data-col="0"></div>
+        <div class="cell" data-row="0" data-col="1"></div>
+        <div class="cell" data-row="0" data-col="2"></div>
+        <div class="cell" data-row="0" data-col="3"></div>
+        <div class="cell" data-row="0" data-col="4"></div>
+        <div class="cell" data-row="0" data-col="5"></div>
+        <div class="cell" data-row="0" data-col="6"></div>
+        <!-- Row 1 -->
+        <div class="cell" data-row="1" data-col="0"></div>
+        <div class="cell" data-row="1" data-col="1"></div>
+        <div class="cell" data-row="1" data-col="2"></div>
+        <div class="cell" data-row="1" data-col="3"></div>
+        <div class="cell" data-row="1" data-col="4"></div>
+        <div class="cell" data-row="1" data-col="5"></div>
+        <div class="cell" data-row="1" data-col="6"></div>
+        <!-- Row 2 -->
+        <div class="cell" data-row="2" data-col="0"></div>
+        <div class="cell" data-row="2" data-col="1"></div>
+        <div class="cell" data-row="2" data-col="2"></div>
+        <div class="cell" data-row="2" data-col="3"></div>
+        <div class="cell" data-row="2" data-col="4"></div>
+        <div class="cell" data-row="2" data-col="5"></div>
+        <div class="cell" data-row="2" data-col="6"></div>
+        <!-- Row 3 -->
+        <div class="cell" data-row="3" data-col="0"></div>
+        <div class="cell" data-row="3" data-col="1"></div>
+        <div class="cell" data-row="3" data-col="2"></div>
+        <div class="cell" data-row="3" data-col="3"></div>
+        <div class="cell" data-row="3" data-col="4"></div>
+        <div class="cell" data-row="3" data-col="5"></div>
+        <div class="cell" data-row="3" data-col="6"></div>
+        <!-- Row 4 -->
+        <div class="cell" data-row="4" data-col="0"></div>
+        <div class="cell" data-row="4" data-col="1"></div>
+        <div class="cell" data-row="4" data-col="2"></div>
+        <div class="cell" data-row="4" data-col="3"></div>
+        <div class="cell" data-row="4" data-col="4"></div>
+        <div class="cell" data-row="4" data-col="5"></div>
+        <div class="cell" data-row="4" data-col="6"></div>
+        <!-- Row 5 (bottom) -->
+        <div class="cell" data-row="5" data-col="0"></div>
+        <div class="cell" data-row="5" data-col="1"></div>
+        <div class="cell" data-row="5" data-col="2"></div>
+        <div class="cell" data-row="5" data-col="3"></div>
+        <div class="cell" data-row="5" data-col="4"></div>
+        <div class="cell" data-row="5" data-col="5"></div>
+        <div class="cell" data-row="5" data-col="6"></div>
+      </div>
+    </div>
+
+    <div id="conn-status-game" class="connection-status connected">Connected</div>
+  </div>
+
+  <!-- ===== Game Over Overlay ===== -->
+  <div id="overlay" class="overlay hidden">
+    <div class="overlay-content">
+      <h2 id="result-title"></h2>
+      <p id="result-msg"></p>
+      <div class="overlay-buttons">
+        <button id="play-again-btn" class="btn btn-primary">Play Again</button>
+        <button id="back-menu-btn" class="btn btn-secondary">Back to Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Scripts ===== -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+  <script src="../../js/firebase-config.js"></script>
+  <script src="../../js/connection.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
