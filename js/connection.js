@@ -38,11 +38,9 @@ class GameConnection {
    */
   _generateCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous chars
-    const randomValues = new Uint8Array(6);
-    crypto.getRandomValues(randomValues);
     let code = '';
     for (let i = 0; i < 6; i++) {
-      code += chars.charAt(randomValues[i] % chars.length);
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return code;
   }
@@ -108,15 +106,6 @@ class GameConnection {
     return new Promise(async (resolve, reject) => {
       this.isHost = false;
       this.roomCode = code.toUpperCase().trim();
-
-      // Validate room code: only allow alphanumeric characters
-      if (!/^[A-Z0-9]{4,6}$/.test(this.roomCode)) {
-        const err = new Error('Invalid room code format.');
-        this._handleError(err);
-        reject(err);
-        return;
-      }
-
       this._roomRef = this.db.ref('rooms/' + this.roomCode);
 
       try {
@@ -192,6 +181,7 @@ class GameConnection {
    * Internal error handler.
    */
   _handleError(err) {
+    console.error('[GameConnection]', err);
     if (this.onError) this.onError(err);
   }
 
