@@ -158,8 +158,8 @@ class GameConnection {
   _setupDisconnectListener(otherRole) {
     const otherRef = this._roomRef.child(otherRole);
     this._addListener(otherRef, 'value', (snap) => {
-      // Only fire disconnect if the value changes to false after initial setup
-      if (snap.val() === false) {
+      // Fire disconnect when value becomes false (onDisconnect) or null (room deleted)
+      if (!snap.val()) {
         if (this.onDisconnected) this.onDisconnected();
       }
     });
