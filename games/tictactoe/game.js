@@ -1,6 +1,6 @@
 /* ===== Tic-Tac-Toe Game Logic ===== */
 
-const gc = new GameConnection();
+let gc = new GameConnection();
 
 // --- State ---
 let board = Array(9).fill(null);   // null | 'X' | 'O'
@@ -42,38 +42,66 @@ const WIN_PATTERNS = [
 //  Connection Callbacks
 // =====================
 
-gc.onConnected = () => {
-  $connStatus.textContent = 'Connected!';
-  $connStatus.className = 'connection-status connected';
-  $lobby.classList.add('hidden');
-  $gameArea.classList.remove('hidden');
-  startNewRound();
-};
+function wireCallbacks(conn) {
+  conn.onConnected = () => {
+    $connStatus.textContent = 'Connected!';
+    $connStatus.className = 'connection-status connected';
+    $lobby.classList.add('hidden');
+    $gameArea.classList.remove('hidden');
+    startNewRound();
+  };
 
-gc.onData = (data) => {
-  switch (data.type) {
-    case 'move':
-      applyMove(data.index, data.symbol);
-      isMyTurn = true;
-      updateTurnIndicator();
-      checkGameOver();
-      break;
-    case 'play-again':
-      startNewRound();
-      break;
-  }
-};
+  conn.onData = (data) => {
+    switch (data.type) {
+      case 'move':
+        applyMove(data.index, data.symbol);
+        isMyTurn = true;
+        updateTurnIndicator();
+        checkGameOver();
+        break;
+      case 'play-again':
+        startNewRound();
+        break;
+    }
+  };
 
-gc.onDisconnected = () => {
-  $connStatus.textContent = 'Opponent disconnected';
-  $connStatus.className = 'connection-status error';
+  conn.onDisconnected = () => {
+    returnToLobby('Opponent has left the game');
+  };
+
+  conn.onError = (err) => {
+    $connStatus.textContent = 'Connection error: ' + (err.type || err.message || err);
+    $connStatus.className = 'connection-status error';
+  };
+}
+
+function returnToLobby(message) {
   gameActive = false;
-};
+  gc.destroy();
+  gc = new GameConnection();
+  wireCallbacks(gc);
 
-gc.onError = (err) => {
-  $connStatus.textContent = 'Connection error: ' + (err.type || err.message || err);
+  // Reset game state
+  board = Array(9).fill(null);
+  mySymbol = null;
+  scores = { X: 0, O: 0, draws: 0 };
+
+  // Reset UI back to lobby
+  $gameArea.classList.add('hidden');
+  $overlay.classList.add('hidden');
+  $lobby.classList.remove('hidden');
+  $roomDisplay.classList.add('hidden');
+  $waitingText.classList.add('hidden');
+  $createBtn.disabled = false;
+  $joinBtn.disabled = false;
+  $codeInput.disabled = false;
+  $codeInput.value = '';
+
+  $connStatus.textContent = message;
   $connStatus.className = 'connection-status error';
-};
+}
+
+wireCallbacks(gc);
 
 // =====================
 //  Lobby Actions
