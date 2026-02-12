@@ -1,0 +1,34 @@
+# Environment variables & secrets
+.env
+.env.*
+*.env
+
+# Firebase
+firebase-debug.log
+.firebase/
+*-debug.log
+serviceAccountKey*.json
+firebase-adminsdk*.json
+
+# Private keys & certificates
+*.pem
+*.key
+*.p12
+*.pfx
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node (if added later)
+node_modules/
+npm-debug.log*
+
+# Claude
+.claude/

@@ -104,8 +104,8 @@ $createBtn.addEventListener('click', async () => {
 
 $joinBtn.addEventListener('click', async () => {
   const code = $codeInput.value.trim();
-  if (code.length < 4) {
-    $connStatus.textContent = 'Enter a valid room code';
+  if (!/^[A-Za-z0-9]{4,6}$/.test(code)) {
+    $connStatus.textContent = 'Enter a valid room code (4-6 alphanumeric characters)';
     $connStatus.className = 'connection-status error';
     return;
   }
@@ -277,7 +277,7 @@ $backMenuBtn.addEventListener('click', () => {
 (function autoJoinFromURL() {
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
-  if (code && code.trim().length >= 4) {
+  if (code && /^[A-Za-z0-9]{4,6}$/.test(code.trim())) {
     $codeInput.value = code.trim().toUpperCase();
     $joinBtn.click();
   }

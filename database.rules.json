@@ -1,0 +1,32 @@
+{
+  "rules": {
+    "rooms": {
+      "$roomCode": {
+        ".read": true,
+        ".write": true,
+        ".validate": "newData.hasChildren(['host', 'guest'])",
+
+        "host": {
+          ".validate": "newData.isBoolean()"
+        },
+        "guest": {
+          ".validate": "newData.isBoolean()"
+        },
+        "messages": {
+          "$messageId": {
+            ".validate": "newData.hasChildren(['from', 'data']) && newData.child('from').isString() && (newData.child('from').val() === 'host' || newData.child('from').val() === 'guest')"
+          }
+        },
+
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}
