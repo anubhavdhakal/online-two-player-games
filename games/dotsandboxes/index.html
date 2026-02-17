@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dots and Boxes — Online 2-Player</title>
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="db-page">
+
+  <a href="../../index.html" class="back-link">&larr; Back to Games</a>
+
+  <!-- ===== Lobby ===== -->
+  <div id="lobby" class="lobby">
+    <h2>Dots and Boxes</h2>
+
+    <div class="lobby-actions">
+      <button id="create-btn" class="btn btn-primary">Create Game</button>
+
+      <div class="lobby-divider"><span>or</span></div>
+
+      <div class="join-row">
+        <input
+          id="code-input"
+          class="input"
+          type="text"
+          placeholder="Room code"
+          maxlength="6"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button id="join-btn" class="btn btn-secondary">Join</button>
+      </div>
+    </div>
+
+    <!-- Active rooms browser -->
+    <div id="room-browser" class="room-browser">
+      <div class="lobby-divider"><span>or browse open rooms</span></div>
+      <div id="room-list" class="room-list">
+        <p class="room-list-empty">Looking for open rooms...</p>
+      </div>
+    </div>
+
+    <!-- Join request notification (host sees this) -->
+    <div id="join-request-alert" class="join-request-alert hidden">
+      <p>Someone wants to join your game!</p>
+      <div class="join-request-buttons">
+        <button id="accept-join-btn" class="btn btn-small btn-primary">Accept</button>
+        <button id="reject-join-btn" class="btn btn-small btn-secondary">Reject</button>
+      </div>
+    </div>
+
+    <!-- Join request pending (requester sees this) -->
+    <div id="join-request-pending" class="join-request-pending hidden">
+      <p class="waiting-text">Waiting for host to accept your request...</p>
+      <button id="cancel-request-btn" class="btn btn-small btn-secondary">Cancel</button>
+    </div>
+
+    <!-- Room code display (shown after creating) -->
+    <div id="room-display" class="room-code-display hidden">
+      <div class="code" id="room-code"></div>
+      <p>Share the link or code with your opponent</p>
+      <div class="share-buttons">
+        <button id="copy-link-btn" class="btn btn-small btn-primary copy-btn">Copy Link</button>
+        <button id="copy-btn" class="btn btn-small btn-secondary copy-btn">Copy Code</button>
+      </div>
+    </div>
+
+    <p id="waiting-text" class="waiting-text hidden">Waiting for opponent to join&hellip;</p>
+    <div id="conn-status" class="connection-status"></div>
+  </div>
+
+  <!-- ===== Game Area ===== -->
+  <div id="game-area" class="hidden">
+    <div class="status-bar db-status-bar">
+      <span id="turn-text" class="turn-indicator">Your turn</span>
+      <span id="score-text" class="scores"></span>
+    </div>
+
+    <div class="db-board-container">
+      <div id="board" class="db-board"></div>
+    </div>
+
+    <div id="conn-status-game" class="connection-status connected">Connected</div>
+  </div>
+
+  <!-- ===== Game Over Overlay ===== -->
+  <div id="overlay" class="overlay hidden">
+    <div class="overlay-content">
+      <h2 id="result-title"></h2>
+      <p id="result-msg"></p>
+      <div class="overlay-buttons">
+        <button id="play-again-btn" class="btn btn-primary">Play Again</button>
+        <button id="back-menu-btn" class="btn btn-secondary">Back to Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Scripts ===== -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+  <script src="../../js/firebase-config.js"></script>
+  <script src="../../js/connection.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

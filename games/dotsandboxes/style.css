@@ -1,0 +1,190 @@
+/* ===== Dots and Boxes Specific Styles ===== */
+
+.db-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.db-page .back-link {
+  flex-shrink: 0;
+}
+
+/* ===== Status Bar ===== */
+
+.db-status-bar {
+  max-width: 440px;
+}
+
+/* ===== Board ===== */
+
+.db-board-container {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.db-board {
+  display: grid;
+  grid-template-columns: repeat(9, auto);
+  grid-template-rows: repeat(9, auto);
+  gap: 0;
+  width: 340px;
+  user-select: none;
+}
+
+/* Dots */
+.db-dot {
+  width: 12px;
+  height: 12px;
+  background: var(--neon-cyan);
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(0, 240, 255, 0.5);
+  z-index: 2;
+}
+
+/* Horizontal lines (even row, odd col) */
+.db-line-h {
+  width: 68px;
+  height: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.db-line-h::after {
+  content: '';
+  width: 100%;
+  height: 4px;
+  background: var(--border-color);
+  border-radius: 2px;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.db-line-h:hover::after {
+  background: rgba(0, 240, 255, 0.4);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+}
+
+.db-line-h.claimed {
+  cursor: default;
+  pointer-events: none;
+}
+
+.db-line-h.claimed::after {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+}
+
+/* Vertical lines (odd row, even col) */
+.db-line-v {
+  width: 12px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.db-line-v::after {
+  content: '';
+  width: 4px;
+  height: 100%;
+  background: var(--border-color);
+  border-radius: 2px;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.db-line-v:hover::after {
+  background: rgba(0, 240, 255, 0.4);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+}
+
+.db-line-v.claimed {
+  cursor: default;
+  pointer-events: none;
+}
+
+.db-line-v.claimed::after {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+}
+
+/* Box centers (odd row, odd col) */
+.db-box {
+  width: 68px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+
+.db-box.p1 {
+  background: rgba(0, 240, 255, 0.15);
+  color: var(--neon-cyan);
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+  animation: popIn 0.3s ease;
+}
+
+.db-box.p2 {
+  background: rgba(255, 0, 229, 0.15);
+  color: var(--neon-magenta);
+  text-shadow: 0 0 10px rgba(255, 0, 229, 0.5);
+  animation: popIn 0.3s ease;
+}
+
+/* Spacer cells (odd row, odd col when empty) — same size as box */
+.db-spacer {
+  width: 68px;
+  height: 68px;
+}
+
+/* ===== Animations ===== */
+
+@keyframes popIn {
+  0% { transform: scale(0.5); opacity: 0; }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ===== Responsive ===== */
+
+@media (max-width: 400px) {
+  .db-board {
+    width: 280px;
+  }
+
+  .db-line-h {
+    width: 54px;
+  }
+
+  .db-line-v {
+    height: 54px;
+  }
+
+  .db-box,
+  .db-spacer {
+    width: 54px;
+    height: 54px;
+  }
+
+  .db-dot {
+    width: 10px;
+    height: 10px;
+  }
+
+  .db-line-h {
+    height: 10px;
+  }
+
+  .db-line-v {
+    width: 10px;
+  }
+}
