@@ -82,25 +82,32 @@
   pointer-events: none;
 }
 
+.ship-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 .ship-name {
   font-weight: 600;
+  flex: 1;
+  text-align: left;
 }
 
-.ship-blocks {
-  display: flex;
-  gap: 2px;
+.ship-size {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--neon-cyan);
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  flex-shrink: 0;
 }
 
-.ship-blocks span {
-  width: 14px;
-  height: 14px;
-  background: var(--neon-cyan);
-  border-radius: 2px;
-  opacity: 0.6;
-}
-
-.ship-option.selected .ship-blocks span {
-  opacity: 1;
+.ship-option.selected .ship-size {
+  background: rgba(0, 240, 255, 0.2);
+  border-color: var(--neon-cyan);
 }
 
 .placement-controls {
