@@ -8,7 +8,7 @@ let board = Array(9).fill(null);   // null | 'X' | 'O'
 let mySymbol = null;               // 'X' for host, 'O' for guest
 let isMyTurn = false;
 let gameActive = false;
-let roundNumber = 0;
+let hostGoesFirst = true;
 let scores = { X: 0, O: 0, draws: 0 };
 
 // --- DOM refs ---
@@ -70,7 +70,10 @@ function wireCallbacks(conn) {
         checkGameOver();
         break;
       case 'play-again':
-        startNewRound();
+        if (!gameActive) {
+          hostGoesFirst = data.hostGoesFirst;
+          startNewRound();
+        }
         break;
     }
   };
@@ -98,7 +101,7 @@ function returnToLobby(message) {
   // Reset game state
   board = Array(9).fill(null);
   mySymbol = null;
-  roundNumber = 0;
+  hostGoesFirst = true;
   scores = { X: 0, O: 0, draws: 0 };
 
   // Reset UI back to lobby
@@ -313,9 +316,6 @@ $copyBtn.addEventListener('click', () => {
 function startNewRound() {
   board = Array(9).fill(null);
   gameActive = true;
-  roundNumber++;
-  // Round 1: X goes first, Round 2: O goes first, etc.
-  const hostGoesFirst = roundNumber % 2 === 1;
   isMyTurn = (mySymbol === 'X') === hostGoesFirst;
   $overlay.classList.add('hidden');
 
@@ -418,7 +418,8 @@ function showOverlay(title, msg) {
 }
 
 $playAgainBtn.addEventListener('click', () => {
-  gc.send({ type: 'play-again' });
+  hostGoesFirst = !hostGoesFirst;
+  gc.send({ type: 'play-again', hostGoesFirst });
   startNewRound();
 });
 

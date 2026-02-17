@@ -23,7 +23,7 @@ let opponentShipsRemaining = 5;
 let isMyTurn = false;
 let gameActive = false;
 let isHost = false;
-let roundNumber = 0;
+let hostGoesFirst = true;
 let scores = { wins: 0, losses: 0 };
 
 // Placement state
@@ -139,7 +139,10 @@ function wireCallbacks(conn) {
         handleFireResult(data);
         break;
       case 'play-again':
-        startPlacementPhase();
+        if (!gameActive) {
+          hostGoesFirst = data.hostGoesFirst;
+          startPlacementPhase();
+        }
         break;
     }
   };
@@ -173,7 +176,7 @@ function returnToLobby(message) {
   isHorizontal = true;
   myReady = false;
   opponentReady = false;
-  roundNumber = 0;
+  hostGoesFirst = true;
   scores = { wins: 0, losses: 0 };
 
   // Reset UI
@@ -623,9 +626,6 @@ function startBattle() {
   $gameArea.classList.remove('hidden');
 
   gameActive = true;
-  roundNumber++;
-  // Round 1: Host fires first, Round 2: Guest fires first, etc.
-  const hostGoesFirst = roundNumber % 2 === 1;
   isMyTurn = isHost === hostGoesFirst;
 
   // Render my board with ships
@@ -759,7 +759,8 @@ function showOverlay(title, msg) {
 }
 
 $playAgainBtn.addEventListener('click', () => {
-  gc.send({ type: 'play-again' });
+  hostGoesFirst = !hostGoesFirst;
+  gc.send({ type: 'play-again', hostGoesFirst });
   startPlacementPhase();
 });
 
